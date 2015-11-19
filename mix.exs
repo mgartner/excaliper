@@ -18,7 +18,7 @@ defmodule Excaliper.Mixfile do
       start_permanent: Mix.env == :prod,
       test_coverage: [tool: ExCoveralls],
       deps: deps,
-      docs: [extras: ["README.md"]]
+      docs: [main: "Excaliper", extras: ["README.md"]]
     ]
   end
 
