@@ -1,4 +1,8 @@
 defmodule Excaliper.Type.PNG do
+  @moduledoc """
+  Measurement support for PNG files.
+  """
+
   alias Excaliper.Measurement
   alias Excaliper.Page
 

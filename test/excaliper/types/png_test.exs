@@ -18,7 +18,7 @@ defmodule Excaliper.Types.PNGTest do
 
   test "measure/1 returns the correct dimensions for PNG files" do
     png_dir = "test/fixtures/png"
-    Path.expand(png_dir) |> File.ls! |> Enum.each fn(file_name) ->
+    png_dir |> Path.expand |> File.ls! |> Enum.each fn(file_name) ->
       fd = Path.expand(file_name, png_dir) |> File.open!
 
       [{width, _} | [{height, _} | _ ]] = String.split(file_name, ~r/x|\./)

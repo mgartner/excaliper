@@ -1,7 +1,22 @@
 defmodule Excaliper do
+  @moduledoc """
+  Excaliper efficiently measures image file dimensions.
+  """
+
   alias Excaliper.Measurement
   alias Excaliper.Type.PNG
 
+  @doc """
+  Measures the file at the given path.
+
+  ## Examples
+
+      Excaliper.measure("/path/to/file.png")
+      #=> {:ok, %Excaliper.Measurement{type: :png, pages: [%Excaliper.Page{width: 10, height: 10}]}
+
+      Excaliper.measure("/path/to/non-existent-file.png")
+      #=> {:error, "could not open file: /path/to/non-existent-file.png"}
+  """
   @spec measure(binary) :: {atom, Measurement.t | String.t}
   def measure(path) do
     case File.open(path) do
