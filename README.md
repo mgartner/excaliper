@@ -1,10 +1,11 @@
 # Excaliper
+[![Build Status](https://travis-ci.org/mgartner/excaliper.svg)](https://travis-ci.org/mgartner/excaliper)
+[![Coverage Status](https://coveralls.io/repos/mgartner/excaliper/badge.svg?branch=travis-coveralls&service=github)](https://coveralls.io/github/mgartner/excaliper?branch=travis-coveralls)
 
-**TODO:*
+**TODO:**
 
-- [ ] Add travis testing
-- [ ] Add coveralls code coverage
-- [ ] Write Readme w/ badges
+- [ ] Write Readme
+- [ ] Add JPEG Support
 - [ ] Generate docs
 - [ ] Publish to Hex
 
