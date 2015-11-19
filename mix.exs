@@ -11,7 +11,8 @@ defmodule Excaliper.Mixfile do
       description: "Fast image dimension parser inspired by the Node.JS module Calipers.",
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
-      deps: deps
+      deps: deps,
+      test_coverage: [tool: ExCoveralls]
     ]
   end
 
@@ -21,7 +22,8 @@ defmodule Excaliper.Mixfile do
 
   def deps do
     [
-      {:dogma, "~> 0.0.11", only: :dev},
+      {:dogma, "~> 0.0.11", only: [:dev, :test]},
+      {:excoveralls, "~> 0.4.2", only: :test}
     ]
   end
 
