@@ -1,6 +1,8 @@
 defmodule Excaliper do
   @moduledoc """
   Excaliper efficiently measures image file dimensions.
+
+  Currently supports **PNG** files.
   """
 
   alias Excaliper.Measurement
