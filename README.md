@@ -1,6 +1,12 @@
 # Excaliper
 
-**TODO: Add description**
+**TODO:*
+
+- [ ] Add travis testing
+- [ ] Add coveralls code coverage
+- [ ] Write Readme w/ badges
+- [ ] Generate docs
+- [ ] Publish to Hex
 
 ## Installation
 
