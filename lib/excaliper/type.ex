@@ -16,6 +16,6 @@ defmodule Excaliper.Type do
   Returns the measurement of the given file descriptor. The input
   file descriptor must be the correct file type.
   """
-  @callback measure(pid) :: Measurement.t
+  @callback measure(pid, Path.t) :: {atom, Measurement.t}
 
 end

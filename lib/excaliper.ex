@@ -2,10 +2,11 @@ defmodule Excaliper do
   @moduledoc """
   Excaliper efficiently measures image file dimensions.
 
-  Currently supports **PNG** files.
+  Currently supports **PNG** and **JPEG** files.
   """
 
   alias Excaliper.Measurement
+  alias Excaliper.Type.JPEG
   alias Excaliper.Type.PNG
 
   @doc """
@@ -19,19 +20,20 @@ defmodule Excaliper do
       Excaliper.measure("/path/to/non-existent-file.png")
       #=> {:error, "could not open file: /path/to/non-existent-file.png"}
   """
-  @spec measure(binary) :: {atom, Measurement.t | String.t}
+  @spec measure(Path.t) :: {atom, Measurement.t | String.t}
   def measure(path) do
     case File.open(path) do
-      {:ok, fd} -> process(fd)
+      {:ok, fd} -> process(fd, path)
       {:error, _} -> {:error, "could not open file: #{path}"}
     end
   end
 
-  @spec process(pid) :: {atom, Measurement.t | String.t}
-  defp process(fd) do
-    {:ok, data} = :file.pread(fd, 0, 16)
+  @spec process(pid, Path.t) :: {atom, Measurement.t | String.t}
+  defp process(fd, path) do
+    {:ok, header} = :file.pread(fd, 0, 16)
     cond do
-      PNG.valid?(data) -> {:ok, PNG.measure(fd)}
+      PNG.valid?(header) -> PNG.measure(fd)
+      JPEG.valid?(header) -> JPEG.measure(fd, path)
       true -> {:error, "unknown file type"}
     end
   end

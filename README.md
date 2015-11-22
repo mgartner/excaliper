@@ -5,7 +5,6 @@
 **TODO:**
 
 - [ ] Write Readme
-- [ ] Add JPEG Support
 - [ ] Generate docs
 - [ ] Publish to Hex
 
