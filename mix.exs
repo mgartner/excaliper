@@ -27,13 +27,14 @@ defmodule Excaliper.Mixfile do
   end
 
   def deps do
-    [
-      {:dogma, "~> 0.0.11", only: [:dev, :test]},
-      {:excoveralls, "~> 0.4.2", only: :test},
-      {:ex_doc, "~> 0.10", only: :dev},
-      {:earmark, "~> 0.1", only: :dev},
-      {:benchfella, "~> 0.2", only: :dev}
-    ]
+    # TODO: undo this
+    #[
+    #  {:dogma, "~> 0.0.11", only: [:dev, :test]},
+    #  {:excoveralls, "~> 0.4.2", only: :test},
+    #  {:ex_doc, "~> 0.10", only: :dev},
+    #  {:earmark, "~> 0.1", only: :dev}
+    #  #  {:benchfella, "~> 0.2", only: :dev}
+    #]
   end
 
 end
