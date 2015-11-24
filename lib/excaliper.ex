@@ -2,7 +2,7 @@ defmodule Excaliper do
   @moduledoc """
   Excaliper efficiently measures image file dimensions.
 
-  Currently supports **PNG** and **JPEG** files.
+  It currently supports **PNG** and **JPEG** files.
   """
 
   alias Excaliper.Measurement
@@ -22,9 +22,15 @@ defmodule Excaliper do
   """
   @spec measure(Path.t) :: {atom, Measurement.t | String.t}
   def measure(path) do
-    case File.open(path) do
-      {:ok, fd} -> process(fd, path)
-      {:error, _} -> {:error, "could not open file: #{path}"}
+    {status, fd} = File.open(path)#, [{:read_ahead, 2048}])
+    try do
+      if status == :ok do
+        result = process(fd, path)
+      else
+        {:error, "could not open file: #{path}"}
+      end
+    after
+      if status == :ok, do: File.close(fd)
     end
   end
 
