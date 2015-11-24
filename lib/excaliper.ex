@@ -22,10 +22,10 @@ defmodule Excaliper do
   """
   @spec measure(Path.t) :: {atom, Measurement.t | String.t}
   def measure(path) do
-    {status, fd} = File.open(path)#, [{:read_ahead, 2048}])
+    {status, fd} = File.open(path)
     try do
       if status == :ok do
-        result = process(fd, path)
+        process(fd, path)
       else
         {:error, "could not open file: #{path}"}
       end
