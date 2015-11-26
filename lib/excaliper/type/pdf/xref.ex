@@ -47,139 +47,46 @@ defmodule Excaliper.Type.PDF.XREF do
   @spec object_locations(pid, integer) :: [integer]
   def object_locations(fd, xref_start) do
     {"xref", offset} = Token.grab(fd, xref_start)
-    IO.puts section_offsets(fd, offset)
-    #parse_section_header(fd, offset, [])
-    #section_size(fd, offset)
-    #{:ok, << "xref", header :: binary >>} = :file.pread(fd, xref_start, @header_search_size)
+    offsets = section_offsets(fd, offset)
+    parse_sections(fd, offsets)
   end
 
   defp section_offsets(fd, offset, acc \\ []) do
-    {revision, size_offset} = Token.grab(fd, offset)
-    {section_size_string, new_offset} = Token.grab(fd, size_offset)
-    IO.inspect Token.grab(fd, offset)
-    IO.inspect Token.grab(fd, size_offset)
-    IO.inspect "section_size_string: #{section_size_string}"
-    if section_size_string == "trailer" do
+    {section_header_index, size_offset} = Token.grab(fd, offset)
+    {lines_string, new_offset} = Token.grab(fd, size_offset)
+    if section_header_index == "trailer" do
       acc
     else
-      {section_size, _} = Integer.parse(section_size_string)
-      IO.puts "section_size: #{section_size}"
-      section_offsets(fd, new_offset + section_size * @xref_row_size, [new_offset | acc])
+      {lines, _} = Integer.parse(lines_string)
+      section_offsets(fd, new_offset + lines * @xref_row_size, [{new_offset, lines} | acc])
     end
   end
 
-  defp parse_section_header(fd, offset, acc) do
-    case Token.grab(fd, offset) do
-      {"trailer", _} -> acc
-      {section_size, new_offset} -> parse_section(fd, new_offset, acc)
-    end
+  @spec parse_sections(pid, [{integer, integer}], [integer]) :: [integer]
+  defp parse_sections(fd, offsets, acc \\ [])
+
+  defp parse_sections(_fd, [], acc), do: List.flatten(acc)
+
+  # TODO: try :file.open, with :raw and :read_ahead and :binary?
+  defp parse_sections(fd, [{offset, lines} | rest], acc) do
+    {:ok, data} = :file.pread(fd, offset + 1, lines * @xref_row_size)
+    parse_sections(fd, rest, [parse_section(data) | acc])
   end
 
-  defp section_size(fd, offset) do
-    {_, new_offset} = Token.grab(fd, offset)
-    {size_string, _} = Token.grab(fd, new_offset)
-    IO.inspect "size_string: #{size_string}"
-    Integer.parse(size_string)
+  @spec parse_section([integer], [integer]) :: [integer]
+  defp parse_section(data, acc \\ [])
+
+  defp parse_section(<<>>, acc) do
+    Enum.reverse(acc)
   end
 
-  # @spec sections
-  # defp section_strings(fd, xref_start, data // nil)
+  defp parse_section(<< offset_string :: binary-size(10), _ :: binary-size(7), "n", _, _, rest :: binary>>, acc) do
+    {object_offset, _} = Integer.parse(offset_string)
+    parse_section(rest, [object_offset | acc])
+  end
 
-  # defp section_strings(fd, xref_start, nil) do
-  #   {:ok, data} = :file.pread(fd, xref_start, @header_search_size)
-  #   section_strings(fd, xref_start, data)
-  # end
-
-  # defp section_strings(fd, xref_start, << "xref", rest :: binary >>) do
-
-  # end
-
-  # defp section_size(chars) do
-  #   index_found = false
-  #   collected = []
-  #   Enum.each char, fn char ->
-  #     break
-  #     if char ==
-  #     case char
-  #       ?\s
-
-  #   end
-  # end
-
-  # defp section_size([char | rest]) when char == ?\s do
-  #   section_size_found(rest, [])
-  # end
-
-  # defp section_size([_ | rest]) do
-  #   section_size(rest)
-  # end
-
-  #defp section_size_found([char | rest]
-
-  #@spec section_length([integer]) :: integer
-  #defp section_length(section_header, acc \\ [])
-
-  #defp section_length
-
-  # function getXrefSectionStrings (fd, offset) {
-  #   return pread(fd, new Buffer(XREF_BUFFER_SIZE), 0, XREF_BUFFER_SIZE, offset)
-  #   .spread(function (bytesRead, buffer) {
-  # 
-  #     if (utils.ascii(buffer, 0, 4) !== 'xref') {
-  #       throw new TypeError('Invalid PDF, coould not find xref table');
-  #     }
-  # 
-  #     var i = 0;
-  #     var strings = [];
-  #     var character, countStart, count;
-  # 
-  #     while (i < bytesRead) {
-  #       character = buffer[i];
-  #       if (character === ascii.SPACE) {
-  #         countStart = i + 1;
-  #         i += 1;
-  #       } else if (countStart && character === ascii.NEWLINE) {
-  #         console.log('count string:', utils.ascii(buffer, countStart, i));
-  #         count = parseInt(utils.ascii(buffer, countStart, i));
-  #         strings.push(utils.ascii(buffer, i + 1, i + 20 * count));
-  #         countStart = null;
-  #         i += 20 * count;
-  #       } else if (character === ascii.T_LOW &&
-  #           utils.ascii(buffer, i, i + 7) === 'trailer') {
-  #         break;
-  #       } else {
-  #         i++;
-  #       }
-  #     }
-  # 
-  #     return strings;
-  #   });
-  # }
-  # 
-  # // Returns an array of integers representing the location of every
-  # // active object listed in the given xref section string.
-  # function parseXrefSectionString (string) {
-  #   var objectStrings = string.split('\n');
-  #   var offsets = [];
-  #   objectStrings.forEach(function (object) {
-  #     object = object.split(' ');
-  #     if (object[2] === 'n') {
-  #       offsets.push(parseInt(object[0]));
-  #     }
-  #   });
-  #   return offsets;
-  # }
-  # 
-  # // Returns an array of the offsets of every in-use object in the file.
-  # function getObjectOffsets (fd, xrefOffset) {
-  #   return getXrefSectionStrings(fd, xrefOffset)
-  #   .then(function (sectionStrings) {
-  #     var offsets = [];
-  #     for (var i = 0; i < sectionStrings.length; i++) {
-  #       offsets = offsets.concat(parseXrefSectionString(sectionStrings[i]));
-  #     }
-  #     return offsets;
-  #   });
-  # }
+  defp parse_section(<< something :: binary-size(20), rest :: binary >>, acc) do
+    parse_section(rest, acc)
+  end
 
 end
