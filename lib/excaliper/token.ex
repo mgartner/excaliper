@@ -2,7 +2,7 @@ defmodule Excaliper.Token do
   @moduledoc false
 
   @token_search_size 64
-  @valid_token_chars '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  @valid_token_chars '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/'
 
   @spec grab(pid, integer) :: {String.t, integer}
   def grab(fd, offset, chars \\ [], acc \\ [])

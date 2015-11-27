@@ -3,6 +3,10 @@ defmodule Excaliper.Type.PDF.XREF do
 
   alias Excaliper.Token
 
+  @typep section_info :: {integer, non_neg_integer}
+  @typep integer_char :: ?0..?9
+
+  @integer_chars '0123456789'
   @start_xref_search_size 256
   @header_search_size 64
   @xref_row_size 20
@@ -14,24 +18,31 @@ defmodule Excaliper.Type.PDF.XREF do
   @spec start_location(pid, integer) :: integer
   def start_location(fd, file_size) do
     {:ok, data} = :file.pread(fd, file_size - @start_xref_search_size, @start_xref_search_size)
-    # TODO: is a char list the best way to do this? Is this the best way to convert?
-    data |> String.to_char_list |> Enum.reverse |> find_start([])
+    {:ok, start_location} = data |> String.to_char_list |> Enum.reverse |> find_start
+    start_location
   end
 
-  # TODO: is there a better type signature for character lists?
-  @spec find_start([integer], [integer]) :: integer
-  defp find_start([?% | [?% | rest]], acc) do
-    collect_start(rest, acc)
+  @spec find_start([char]) :: {:ok, integer} | {:error, String.t}
+  defp find_start(chars)
+
+  defp find_start([?% | [?% | rest]]) do
+    {:ok, collect_start(rest)}
   end
 
-  defp find_start([_ | rest], acc) do
-    find_start(rest, acc)
+  defp find_start([_ | rest]) do
+    find_start(rest)
   end
 
-  # TODO: is there a better type signature for character lists?
-  @spec collect_start([integer], [integer]) :: integer
-  defp collect_start([char | rest], acc) when char in '0123456789' do
-    collect_start(rest, [char | acc])
+  defp find_start([]) do
+    {:error, "xref location not found"}
+  end
+
+  @spec collect_start([char], [integer_char]) :: integer
+  defp collect_start(chars, acc \\ [])
+
+  defp collect_start([], acc) do
+    {start, _} = acc |> List.to_string |> Integer.parse
+    start
   end
 
   defp collect_start([?f | _], acc) do
@@ -39,20 +50,24 @@ defmodule Excaliper.Type.PDF.XREF do
     start
   end
 
+  defp collect_start([char | rest], acc) when char in @integer_chars do
+    collect_start(rest, [char | acc])
+  end
+
   defp collect_start([_ | rest], acc) do
     collect_start(rest, acc)
   end
 
-  # TODO: Check for an open source tokenizer.
   @spec object_locations(pid, integer) :: [integer]
   def object_locations(fd, xref_start) do
-    {"xref", offset} = Token.grab(fd, xref_start)
-    offsets = section_offsets(fd, offset)
+    {"xref", xref_table_offset} = Token.grab(fd, xref_start)
+    offsets = section_offsets(fd, xref_table_offset)
     parse_sections(fd, offsets)
   end
 
-  defp section_offsets(fd, offset, acc \\ []) do
-    {section_header_index, size_offset} = Token.grab(fd, offset)
+  @spec section_offsets(pid, integer, [section_info]) :: [section_info]
+  defp section_offsets(fd, section_header_offset, acc \\ []) do
+    {section_header_index, size_offset} = Token.grab(fd, section_header_offset)
     {lines_string, new_offset} = Token.grab(fd, size_offset)
     if section_header_index == "trailer" do
       acc
@@ -62,18 +77,17 @@ defmodule Excaliper.Type.PDF.XREF do
     end
   end
 
-  @spec parse_sections(pid, [{integer, integer}], [integer]) :: [integer]
+  @spec parse_sections(pid, [section_info], [integer]) :: [integer]
   defp parse_sections(fd, offsets, acc \\ [])
 
-  defp parse_sections(_fd, [], acc), do: List.flatten(acc)
+  defp parse_sections(_fd, [], acc), do: acc
 
-  # TODO: try :file.open, with :raw and :read_ahead and :binary?
   defp parse_sections(fd, [{offset, lines} | rest], acc) do
     {:ok, data} = :file.pread(fd, offset + 1, lines * @xref_row_size)
-    parse_sections(fd, rest, [parse_section(data) | acc])
+    parse_sections(fd, rest, parse_section(data) ++ acc)
   end
 
-  @spec parse_section([integer], [integer]) :: [integer]
+  @spec parse_section(binary, [integer]) :: [integer]
   defp parse_section(data, acc \\ [])
 
   defp parse_section(<<>>, acc) do
