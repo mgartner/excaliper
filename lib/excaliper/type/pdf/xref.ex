@@ -7,7 +7,7 @@ defmodule Excaliper.Type.PDF.XREF do
   @typep integer_char :: ?0..?9
 
   @integer_chars '0123456789'
-  @start_xref_search_size 256
+  @start_xref_search_size 1024
   @header_search_size 64
   @xref_row_size 20
 
@@ -18,7 +18,7 @@ defmodule Excaliper.Type.PDF.XREF do
   @spec start_location(pid, integer) :: integer
   def start_location(fd, file_size) do
     {:ok, data} = :file.pread(fd, file_size - @start_xref_search_size, @start_xref_search_size)
-    {:ok, start_location} = data |> String.to_char_list |> Enum.reverse |> find_start
+    {:ok, start_location} = data |> :binary.bin_to_list |> Enum.reverse |> find_start
     start_location
   end
 
@@ -99,7 +99,7 @@ defmodule Excaliper.Type.PDF.XREF do
     parse_section(rest, [object_offset | acc])
   end
 
-  defp parse_section(<< something :: binary-size(20), rest :: binary >>, acc) do
+  defp parse_section(<< _ :: binary-size(20), rest :: binary >>, acc) do
     parse_section(rest, acc)
   end
 
