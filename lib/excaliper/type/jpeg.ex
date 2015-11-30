@@ -18,7 +18,7 @@ defmodule Excaliper.Type.JPEG do
 
   @spec measure(pid, Path.t) :: {atom, Measurement.t}
   def measure(fd, path) do
-    {:ok, %{size: size}} = File.stat(path)
+    {:ok, %{size: size}} = File.lstat(path)
     dimensions(fd, size, @size_offset, << >>)
   end
 

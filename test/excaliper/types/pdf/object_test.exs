@@ -4,7 +4,7 @@ defmodule Excaliper.Types.PDF.ObjectTest do
   alias Excaliper.Page
 
   test "parse/2 returns the page dimensions if the object is a page" do
-    # TODO: add some more tests here
+    # TODO: add some more tests heret
     file_path = "test/fixtures/pdf/123x456.pdf"
     fd = File.open!(file_path)
     assert Object.parse(fd, 118) == {:page, %Page{width: 123, height: 456}}
@@ -23,5 +23,6 @@ defmodule Excaliper.Types.PDF.ObjectTest do
   end
 
   # test "parse/2 returns :other if the object has no media box"
+  # TODO: Write this test.
 
 end

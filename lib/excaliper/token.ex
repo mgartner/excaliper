@@ -9,7 +9,7 @@ defmodule Excaliper.Token do
 
   def grab(fd, offset, [], acc) do
     {:ok, data} = :file.pread(fd, offset, @token_search_size)
-    grab(fd, offset, String.to_char_list(data), acc)
+    grab(fd, offset, :binary.bin_to_list(data), acc)
   end
 
   def grab(fd, offset, [a | [b | rest]], acc) when [a, b] =='>>' or [a, b] == '<<' do
