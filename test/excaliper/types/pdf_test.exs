@@ -5,7 +5,7 @@ defmodule Excaliper.Types.PDFTest do
   alias Excaliper.Type.PDF
 
   test "valid?/1 returns true with a valid PDF binary" do
-    file_path = "test/fixtures/pdf/123x456.pdf"
+    file_path = "test/fixtures/pdf/123x456.1.pdf"
     {:ok, data} = file_path |> Path.expand |> File.open! |> :file.pread(0, 16)
     assert PDF.valid?(data)
   end
@@ -17,11 +17,43 @@ defmodule Excaliper.Types.PDFTest do
   end
 
   test "measure/1 returns the correct dimensions for PDF files" do
-    file_path = "test/fixtures/pdf/123x456.pdf"
+    file_path = "test/fixtures/pdf/123x456.1.pdf"
     fd = Path.expand(file_path) |> File.open!
     assert PDF.measure(fd, file_path) == {:ok, %Measurement{
       type: :pdf,
       pages: [%Page{width: 123, height: 456}]
+    }}
+
+    file_path = "test/fixtures/pdf/540x720.1.pdf"
+    fd = Path.expand(file_path) |> File.open!
+    assert PDF.measure(fd, file_path) == {:ok, %Measurement{
+      type: :pdf,
+      pages: [%Page{width: 540, height: 720}]
+    }}
+
+    file_path = "test/fixtures/pdf/442x663.1.pdf"
+    fd = Path.expand(file_path) |> File.open!
+    assert PDF.measure(fd, file_path) == {:ok, %Measurement{
+      type: :pdf,
+      pages: [%Page{width: 442.008, height: 663.12}]
+    }}
+
+    file_path = "test/fixtures/pdf/595x842.1.pdf"
+    fd = Path.expand(file_path) |> File.open!
+    assert PDF.measure(fd, file_path) == {:ok, %Measurement{
+      type: :pdf,
+      pages: [%Page{width: 595.28, height: 841.89}]
+    }}
+
+    file_path = "test/fixtures/pdf/249x321.3.pdf"
+    fd = Path.expand(file_path) |> File.open!
+    assert PDF.measure(fd, file_path) == {:ok, %Measurement{
+      type: :pdf,
+      pages: [
+        %Page{width: 249.45, height: 321.02},
+        %Page{width: 249.45, height: 321.02},
+        %Page{width: 249.45, height: 321.02}
+      ]
     }}
   end
 

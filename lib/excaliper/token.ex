@@ -2,7 +2,7 @@ defmodule Excaliper.Token do
   @moduledoc false
 
   @token_search_size 64
-  @valid_token_chars '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  @valid_token_chars '.0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
   @spec grab(pid, integer) :: {String.t, integer}
   def grab(fd, offset, chars \\ [], acc \\ [])
@@ -12,8 +12,18 @@ defmodule Excaliper.Token do
     grab(fd, offset, :binary.bin_to_list(data), acc)
   end
 
-  def grab(fd, offset, [a | [b | rest]], acc) when [a, b] =='>>' or [a, b] == '<<' do
+  def grab(fd, offset, [char | rest], acc) when char in '<>[]' and acc != [] do
+    token = acc |> Enum.reverse |> List.to_string
+    {token, offset}
+  end
+
+  def grab(fd, offset, [a | [b | rest]], _acc) when [a, b] == '>>' or [a, b] == '<<' do
     token = List.to_string([a, b])
+    {token, offset + 2}
+  end
+
+  def grab(fd, offset, [char | rest], _acc) when char in '[]' do
+    token = List.to_string([char])
     {token, offset + 1}
   end
 

@@ -17,6 +17,12 @@ defmodule ExcaliperTest do
       {:ok, %Measurement{type: :jpeg, pages: [%Page{width: 114, height: 118}]}}
   end
 
+  test "measure/1 returns a PDF measurement" do
+    path = Path.expand("test/fixtures/pdf/123x456.1.pdf")
+    assert Excaliper.measure(path) ==
+      {:ok, %Measurement{type: :pdf, pages: [%Page{width: 123, height: 456}]}}
+  end
+
   test "measure/1 returns an error with a file type that is not supported" do
     path = Path.expand("test/fixtures/txt/file.txt")
     assert Excaliper.measure(path) == {:error, "unknown file type"}

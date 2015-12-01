@@ -7,6 +7,7 @@ defmodule Excaliper do
 
   alias Excaliper.Measurement
   alias Excaliper.Type.JPEG
+  alias Excaliper.Type.PDF
   alias Excaliper.Type.PNG
 
   @doc """
@@ -40,6 +41,7 @@ defmodule Excaliper do
     cond do
       PNG.valid?(header) -> PNG.measure(fd)
       JPEG.valid?(header) -> JPEG.measure(fd, path)
+      PDF.valid?(header) -> PDF.measure(fd, path)
       true -> {:error, "unknown file type"}
     end
   end

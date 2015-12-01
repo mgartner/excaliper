@@ -1,10 +1,9 @@
 defmodule Excaliper.Type.PDF do
   @moduledoc false
 
-  @behavior Excaliper.Type
+  @behaviour Excaliper.Type
 
   alias Excaliper.Measurement
-  alias Excaliper.Page
   alias Excaliper.Type.PDF.XREF
   alias Excaliper.Type.PDF.Object
 
@@ -19,14 +18,22 @@ defmodule Excaliper.Type.PDF do
     {:ok, %{size: size}} = File.lstat(path)
     xref_start = XREF.start_location(fd, size)
 
-    pages = XREF.object_locations(fd, xref_start)
-    |> Enum.map(fn offset -> 
-      case Object.parse(fd, offset) do
-        {:page, page_info} -> page_info
-        _ -> false
+    objects = XREF.object_locations(fd, xref_start) |> Enum.map(&Object.parse(fd, &1))
+
+    pages_box = case Enum.find(objects, &(&1.type == :pages)) do
+      %Object{crop_box: :none, media_box: media_box} -> media_box
+      %Object{crop_box: crop_box} -> crop_box
+    end
+
+    pages = Enum.filter(objects, &(&1.type == :page))
+    |> Enum.map(fn object ->
+      case {object.crop_box, object.media_box} do
+        {:none, :none} -> pages_box
+        {:none, media_box} -> media_box
+        {crop_box, _} -> crop_box
       end
     end)
-    |> Enum.filter(&(&1))
+    |> Enum.filter(&(&1 != :none))
 
     {:ok, %Measurement{type: :pdf, pages: pages}}
   end
