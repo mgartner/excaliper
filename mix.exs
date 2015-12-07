@@ -27,6 +27,10 @@ defmodule Excaliper.Mixfile do
   end
 
   def deps do
+    [
+      { :eflame, ~r/.*/, git: "https://github.com/proger/eflame.git", compile: "rebar compile"}
+      # { :eflame, ".*", git: "https://github.com/proger/eflame.git", compile: "rebar compile"}
+    ]
     # TODO: undo this
     #[
     #  {:dogma, "~> 0.0.11", only: [:dev, :test]},

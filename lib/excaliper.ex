@@ -24,6 +24,7 @@ defmodule Excaliper do
   @spec measure(Path.t) :: {atom, Measurement.t | String.t}
   def measure(path) do
     {status, fd} = File.open(path, [:raw])
+    #{status, fd} = File.open(path, [{:read_ahead, 2048}])
     try do
       if status == :ok do
         result = process(fd, path)
