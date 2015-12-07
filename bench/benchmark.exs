@@ -34,17 +34,17 @@ defmodule Excaliper.TestBenchmark do
 
 end
 
-IO.puts :eflame.apply(&Excaliper.TestBenchmark.run_profile/0, [])
+:eflame.apply(&Excaliper.TestBenchmark.run_profile/0, [])
 
-# png_path = Path.expand("test/fixtures/png/123x456.png")
-# jpeg_path = Path.expand("test/fixtures/jpeg/123x456.jpg")
-# pdf_path = Path.expand("test/fixtures/pdf/540x720.1.pdf")
+png_path = Path.expand("test/fixtures/png/123x456.png")
+jpeg_path = Path.expand("test/fixtures/jpeg/123x456.jpg")
+pdf_path = Path.expand("test/fixtures/pdf/540x720.1.pdf")
 
 # Excaliper.TestBenchmark.run_excaliper("PNG Excaliper", png_path)
 # Excaliper.TestBenchmark.run_shell("PNG ImageMagick", "identify", png_path)
 # Excaliper.TestBenchmark.run_excaliper("JPEG Excaliper", jpeg_path)
 # Excaliper.TestBenchmark.run_shell("JPEG ImageMagick", "identify", jpeg_path)
-# 
+
 # :fprof.apply(&Excaliper.TestBenchmark.run_profile/0, [])
 # :fprof.profile()
 # :fprof.analyse(
@@ -56,4 +56,5 @@ IO.puts :eflame.apply(&Excaliper.TestBenchmark.run_profile/0, [])
 #   ]
 # )
 
+# Excaliper.TestBenchmark.run_excaliper("PDF Excaliper", "test/fixtures/pdf/540x720.1.pdf")
 # Excaliper.TestBenchmark.run_shell("PDF pdfinfo", "pdfinfo", pdf_path)
