@@ -40,14 +40,8 @@ defmodule Excaliper.Type.PDF.XREF do
   @spec collect_start([char], [integer_char]) :: integer
   defp collect_start(chars, acc \\ [])
 
-  defp collect_start([], acc) do
-    {start, _} = acc |> List.to_string |> Integer.parse
-    start
-  end
-
-  defp collect_start([?f | _], acc) do
-    {start, _} = acc |> List.to_string |> Integer.parse
-    start
+  defp collect_start(chars, acc) when chars == [] or hd(chars) == ?f do
+    acc |> List.to_string |> String.to_integer
   end
 
   defp collect_start([char | rest], acc) when char in @integer_chars do
@@ -72,7 +66,7 @@ defmodule Excaliper.Type.PDF.XREF do
     if section_header_index == "trailer" do
       acc
     else
-      {lines, _} = Integer.parse(lines_string)
+      lines = String.to_integer(lines_string)
       section_offsets(fd, new_offset + lines * @xref_row_size, [{new_offset, lines} | acc])
     end
   end
@@ -95,7 +89,7 @@ defmodule Excaliper.Type.PDF.XREF do
   end
 
   defp parse_section(<< offset_string :: binary-size(10), _ :: binary-size(7), "n", _, _, rest :: binary>>, acc) do
-    {object_offset, _} = Integer.parse(offset_string)
+    object_offset = String.to_integer(offset_string)
     parse_section(rest, [object_offset | acc])
   end
 
