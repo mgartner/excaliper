@@ -1,15 +1,16 @@
 defmodule Excaliper.Type.PDF.XREF do
   @moduledoc false
 
-  alias Excaliper.Token
+  alias Excaliper.Type.PDF.Token
 
-  @typep section_info :: {integer, non_neg_integer}
+  @typep section_info :: {non_neg_integer, non_neg_integer}
   @typep integer_char :: ?0..?9
 
   @integer_chars '0123456789'
   @start_xref_search_size 1024
   @header_search_size 64
   @xref_row_size 20
+  @xref_header_read_size 32
 
   # TODO: Handle Linearized XREF if I need to.
   # It may not be needed if the XREF is duplicated at
@@ -54,21 +55,23 @@ defmodule Excaliper.Type.PDF.XREF do
 
   @spec object_locations(pid, integer) :: [integer]
   def object_locations(fd, xref_start) do
-    {"xref", xref_table_offset} = Token.grab(fd, xref_start)
-    offsets = section_offsets(fd, xref_table_offset)
+    [{"xref", _} | section_header_tokens] = Token.stream(fd, xref_start, @xref_header_read_size) |> Enum.take(3)
+    offsets = section_offsets(fd, section_header_tokens)
     parse_sections(fd, offsets)
   end
 
   @spec section_offsets(pid, integer, [section_info]) :: [section_info]
-  defp section_offsets(fd, section_header_offset, acc \\ []) do
-    {section_header_index, size_offset} = Token.grab(fd, section_header_offset)
-    {lines_string, new_offset} = Token.grab(fd, size_offset)
-    if section_header_index == "trailer" do
-      acc
-    else
-      lines = String.to_integer(lines_string)
-      section_offsets(fd, new_offset + lines * @xref_row_size, [{new_offset, lines} | acc])
-    end
+  defp section_offsets(fd, section_header_tokens, acc \\ [])
+
+  defp section_offsets(_fd, [{"trailer", _} | _], acc) do
+    acc |> Enum.reverse
+  end
+
+  defp section_offsets(fd, [{_, _}, {section_lines, offset}], acc) do
+    lines = String.to_integer(section_lines)
+    new_offset = offset + lines * @xref_row_size
+    section_header_tokens = Token.stream(fd, new_offset, @xref_header_read_size) |> Enum.take(2)
+    section_offsets(fd, section_header_tokens, [{lines, offset} | acc])
   end
 
   @spec parse_sections(pid, [section_info], [integer]) :: [integer]
@@ -76,7 +79,7 @@ defmodule Excaliper.Type.PDF.XREF do
 
   defp parse_sections(_fd, [], acc), do: acc
 
-  defp parse_sections(fd, [{offset, lines} | rest], acc) do
+  defp parse_sections(fd, [{lines, offset} | rest], acc) do
     {:ok, data} = :file.pread(fd, offset + 1, lines * @xref_row_size)
     parse_sections(fd, rest, parse_section(data) ++ acc)
   end
