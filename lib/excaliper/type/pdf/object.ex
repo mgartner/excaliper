@@ -15,7 +15,8 @@ defmodule Excaliper.Type.PDF.Object do
 
   @spec parse(pid, integer) :: Excaliper.Type.PDF.Object
   def parse(fd, offset) do
-    tokens = Token.stream(fd, offset) |> Enum.map(fn {token, offset} -> token end)
+    #tokens = Token.stream(fd, offset) |> Enum.map(fn {token, offset} -> token end)
+    tokens = Token.list(fd, offset)
     collect_object(tokens)
   end
 

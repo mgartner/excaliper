@@ -1,12 +1,54 @@
 defmodule Excaliper.Type.PDF.Token do
   @moduledoc false
 
-  @default_read_size 512
+  @default_read_size 4096
   @max_search_size 4096
   @stop_tokens ["endobj", "stream"]
   @valid_chars '.0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
   @type t :: {String.t, integer}
+
+  """
+  TODO:
+  New speed up strategies:
+    - Object should use reduce_while so that it stops looping once it know the type of object/dictionary
+    - Object should only be checked if the first token is "<<" (can I add these back in without slowing things down?)
+    - Stream should collect 1 token at a time, not a bunch.
+    - Maybe the stream should only read once and collect tokens one at a time
+    - Might try a simple read once list instead of a stream to see if stream adds too much overhead
+  """
+
+  def list(fd, offset, read_size \\ @default_read_size) do
+    {:ok, data} = :file.pread(fd, offset, read_size)
+    data |> :binary.bin_to_list |> collect_token_list
+  end
+
+  @spec collect_token_list([char], [char], [t]) :: [String.t]
+  defp collect_token_list(chars, char_acc \\ "", tokens \\ [])
+
+  defp collect_token_list(chars = [], char_acc, _tokens = []) do
+    chars
+  end
+
+  defp collect_token_list(_chars, _char_acc, [last_token | rest]) when last_token in @stop_tokens do
+    Enum.reverse([last_token | rest])
+  end
+
+  defp collect_token_list(_chars = [], _char_acc, tokens) do
+    Enum.reverse(tokens)
+  end
+
+  defp collect_token_list([char | rest], char_acc, tokens) when char in @valid_chars do
+    collect_token_list(rest, char_acc <> << char >>, tokens)
+  end
+
+  defp collect_token_list([char | rest], char_acc, tokens) when not char in @valid_chars and char_acc != "" do
+    collect_token_list(rest, "", [char_acc | tokens])
+  end
+
+  defp collect_token_list([_ | rest], char_acc = "", tokens) do
+    collect_token_list(rest, char_acc, tokens)
+  end
 
   @spec stream(pid, integer, integer) :: Enumerable.t
   def stream(fd, offset, read_size \\ @default_read_size) do
