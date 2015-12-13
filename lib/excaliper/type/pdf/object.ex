@@ -7,47 +7,49 @@ defmodule Excaliper.Type.PDF.Object do
   defstruct [:type, :index, :media_box, :crop_box]
 
   @type t :: %Excaliper.Type.PDF.Object{
-    type: :page | :pages | :other, 
-    index: String.t, 
-    media_box: Page.t | :none, 
+    type: :page | :pages | :other,
+    index: String.t | :none,
+    media_box: Page.t | :none,
     crop_box: Page.t | :none
   }
 
   @spec parse(pid, integer) :: Excaliper.Type.PDF.Object
   def parse(fd, offset) do
     tokens = Token.stream(fd, offset) |> Enum.map(fn {token, offset} -> token end)
-    %Excaliper.Type.PDF.Object{
-      type: object_type(tokens),
-      index: object_index(tokens),
-      media_box: box_dimensions("MediaBox", tokens),
-      crop_box: box_dimensions("CropBox", tokens)
-    }
+    collect_object(tokens)
   end
 
-  @spec object_index([String.t]) :: String.t | :none
-  defp object_index([]), do: :none
-  defp object_index([index | rest]), do: index
+  @spec collect_object([String.t], boolean, Excaliper.Type.PDF.Object) :: Excaliper.Type.PDF.Object
+  defp collect_object(tokens, index_found \\ false, object \\
+    %Excaliper.Type.PDF.Object{type: :other, index: :none, media_box: :none, crop_box: :none})
 
-  @spec object_type([String.t]) :: :page | :pages | :other
-  defp object_type([]), do: :other
-  defp object_type(["Type" | ["Page" | _rest]]), do: :page
-  defp object_type(["Type" | ["Pages" | _rest]]), do: :pages
-  defp object_type([_ | rest]), do: object_type(rest)
+  defp collect_object(_tokens = [], _index_found, object), do: object
 
-  @spec box_dimensions(String.t, [String.t]) :: {:box, integer, integer} | :none
-  defp box_dimensions(_box_type, []), do: :none
+  defp collect_object([index | rest], index_found = false, object) do
+    collect_object(rest, true, Map.put(object, :index, index))
+  end
 
-  defp box_dimensions(box_type, [key, "[", x1, y1, x2, y2, "]" | _rest]) when box_type == key do
+  defp collect_object([box_type, x1, y1, x2, y2 | rest], index_found = true, object)
+  when box_type == "MediaBox" or box_type == "CropBox" do
     {x1_num, _} = Float.parse(x1)
     {x2_num, _} = Float.parse(x2)
     {y1_num, _} = Float.parse(y1)
     {y2_num, _} = Float.parse(y2)
 
-    %Page{width: x2_num - x1_num, height: y2_num - y1_num}
+    page = %Page{width: x2_num - x1_num, height: y2_num - y1_num}
+    box_name = box_type |> Mix.Utils.underscore |> String.to_atom
+
+    collect_object(rest, index_found, Map.put(object, box_name, page))
   end
 
-  defp box_dimensions(box_type, [thing | rest]) do
-    box_dimensions(box_type, rest)
+  defp collect_object(["Type", type | rest], index_found = true, object)
+  when type == "Page" or type == "Pages" do
+    type_name = type |> String.downcase |> String.to_atom
+    collect_object(rest, index_found, Map.put(object, :type, type_name))
+  end
+
+  defp collect_object([_ | rest], index_found = true, object) do
+    collect_object(rest, index_found, object)
   end
 
 end
