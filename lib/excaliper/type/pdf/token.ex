@@ -1,24 +1,23 @@
 defmodule Excaliper.Type.PDF.Token do
   @moduledoc false
 
-  @default_read_size 4096
-  @max_search_size 4096
+  @default_read_size 256
+  @max_search_size 2048
   @stop_tokens ["endobj", "stream"]
   @valid_chars '.0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
   @type t :: {String.t, integer}
 
-  """
-  TODO:
-  New speed up strategies:
-    - Object should use reduce_while so that it stops looping once it know the type of object/dictionary
-    - Object should only be checked if the first token is "<<" (can I add these back in without slowing things down?)
-    - Stream should collect 1 token at a time, not a bunch.
-    - Maybe the stream should only read once and collect tokens one at a time
-    - Might try a simple read once list instead of a stream to see if stream adds too much overhead
-  """
+  # TODO:
+  # Try using :pdf_lexer.token(Cont, char) or whatever to take one token at a time...
 
+  # @spec list(pid, integer, integer) :: [thh
   def list(fd, offset, read_size \\ @default_read_size) do
+    {:ok, data} = :file.pread(fd, offset, read_size)
+    :pdf_lexer.tokens([], :binary.bin_to_list(data))
+  end
+
+  def old_list(fd, offset, read_size \\ @default_read_size) do
     {:ok, data} = :file.pread(fd, offset, read_size)
     data |> :binary.bin_to_list |> collect_token_list
   end

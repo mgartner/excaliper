@@ -3,13 +3,13 @@ defmodule Excaliper.TokenTest do
   alias Excaliper.Type.PDF.Token
 
   test "list/3 returns a list of tokens that can be partially evaluated" do
-    file_path = "test/fixtures/txt/file.txt"
+    file_path = "test/fixtures/txt/pdf_object.txt"
     fd = File.open!(file_path)
-    assert Token.list(fd, 0, 12) == [
+    assert Token.list(fd, 0) == {:ok, [
       {"This", 4},
       {"is", 7},
       {"an", 10}
-    ]
+    ]}
   end
 
   test "stream/3 returns a stream that can be partially evaluated" do

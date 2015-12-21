@@ -8,7 +8,7 @@ defmodule Excaliper.Types.PDF.ObjectTest do
     fd = File.open!(file_path)
     assert Object.parse(fd, 118) == %Object{
       type: :page,
-      index: "3",
+      index: 3,
       media_box: %Page{width: 123, height: 456},
       crop_box: %Page{width: 123, height: 456}
     }
@@ -19,7 +19,7 @@ defmodule Excaliper.Types.PDF.ObjectTest do
     fd = File.open!(file_path)
     assert Object.parse(fd, 2430) == %Object{
       type: :pages,
-      index: "21",
+      index: 21,
       media_box: %Page{width: 249.45, height: 321.02},
       crop_box: :none
     }
@@ -30,7 +30,7 @@ defmodule Excaliper.Types.PDF.ObjectTest do
     fd = File.open!(file_path)
     assert Object.parse(fd, 300) == %Object{
       type: :other,
-      index: "4",
+      index: 4,
       media_box: :none,
       crop_box: :none
     }
