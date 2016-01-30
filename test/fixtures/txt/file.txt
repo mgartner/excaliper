@@ -1,2 +1,2 @@
 This is a test file. /MediaBox [40.5 20.12 12.4 54.2].
-/Type /Page /Pages endobj /CropBox
+/Type /Page /Pages endobj /CropBox /URL (a http://url)
