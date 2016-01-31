@@ -22,26 +22,18 @@ defmodule Excaliper.Type.PDF.Object do
 
   defp collect_object(_tokens = [], object), do: object
 
-  defp collect_object([{:string, box_type}, {:number, x1}, {:number, y1}, {:number, x2}, {:number, y2} | rest], object)
-  when box_type == '/MediaBox' do
+  defp collect_object([{:media_box}, {:number, x1}, {:number, y1}, {:number, x2}, {:number, y2} | rest], object) do
     page = %Page{width: x2 - x1, height: y2 - y1}
     collect_object(rest, Map.put(object, :media_box, page))
   end
 
-  defp collect_object([{:string, box_type}, {:number, x1}, {:number, y1}, {:number, x2}, {:number, y2} | rest], object)
-  when box_type == '/CropBox' do
+  defp collect_object([{:crop_box}, {:number, x1}, {:number, y1}, {:number, x2}, {:number, y2} | rest], object) do
     page = %Page{width: x2 - x1, height: y2 - y1}
     collect_object(rest, Map.put(object, :crop_box, page))
   end
 
-  defp collect_object([{:string, '/Type'}, {:string, type} | rest], object)
-  when type == '/Pages' do
-    collect_object(rest, Map.put(object, :type, :pages))
-  end
-
-  defp collect_object([{:string, '/Type'}, {:string, type} | rest], object)
-  when type == '/Page' do
-    collect_object(rest, Map.put(object, :type, :page))
+  defp collect_object([{:type}, {type} | rest], object) when type == :page or type == :pages do
+    collect_object(rest, Map.put(object, :type, type))
   end
 
   defp collect_object([_ | rest], object) do
