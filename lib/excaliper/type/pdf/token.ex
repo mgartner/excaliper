@@ -1,7 +1,7 @@
 defmodule Excaliper.Type.PDF.Token do
   @moduledoc false
 
-  @object_read_size 256
+  @object_read_size 1024
   @xref_header_tokens 3
   @xref_read_size 32
   @xref_valid_chars 'xreftail0123456789'
@@ -12,7 +12,7 @@ defmodule Excaliper.Type.PDF.Token do
   @spec object(pid, integer) :: [object_token]
   def object(fd, offset) do
     {:ok, data} = :file.pread(fd, offset, @object_read_size)
-    {:done, {:ok, tokens, _}, _} = :pdf_object_lexer.tokens([], :binary.bin_to_list(data))
+    {:done, {:ok, tokens, _}, _} = :pdf_object_lexer.tokens([], :binary.bin_to_list(data <> "endobj"))
     tokens
   end
 
