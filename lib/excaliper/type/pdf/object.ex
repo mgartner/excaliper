@@ -12,12 +12,12 @@ defmodule Excaliper.Type.PDF.Object do
     crop_box: Page.t | :none
   }
 
-  @spec parse(pid, integer) :: Excaliper.Type.PDF.Object
+  @spec parse(pid, integer) :: Excaliper.Type.PDF.Object.t
   def parse(fd, offset) do
     Token.object(fd, offset) |> collect_object
   end
 
-  @spec collect_object([String.t], Excaliper.Type.PDF.Object) :: Excaliper.Type.PDF.Object
+  @spec collect_object([String.t], Excaliper.Type.PDF.Object.t) :: Excaliper.Type.PDF.Object.t
   defp collect_object(tokens, object \\ %Excaliper.Type.PDF.Object{type: :other, media_box: :none, crop_box: :none})
 
   defp collect_object(_tokens = [], object), do: object
