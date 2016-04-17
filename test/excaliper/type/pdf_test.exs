@@ -57,19 +57,4 @@ defmodule Excaliper.Types.PDFTest do
     }}
   end
 
-  # test "measure/1 returns the correct dimensions for PNG files" do
-  #   dir = "test/fixtures/png"
-  #   dir |> Path.expand |> File.ls! |> Enum.each fn(file_name) ->
-  #     fd = Path.expand(file_name, dir) |> File.open!
-
-  #     [{width, _} | [{height, _} | _ ]] = String.split(file_name, ~r/x|\./)
-  #                                         |> Enum.map &(Integer.parse(&1))
-
-  #     assert PNG.measure(fd) == {:ok, %Measurement{
-  #       type: :png,
-  #       pages: [%Page{width: width, height: height}]
-  #     }}
-  #   end
-  # end
-
 end
