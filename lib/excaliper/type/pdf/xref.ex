@@ -10,7 +10,6 @@ defmodule Excaliper.Type.PDF.XREF do
   @start_xref_search_size 1024
   @header_search_size 64
   @xref_row_size 20
-  @xref_header_read_size 32
 
   # TODO: Handle Linearized XREF if I need to.
   # It may not be needed if the XREF is duplicated at
@@ -55,22 +54,22 @@ defmodule Excaliper.Type.PDF.XREF do
 
   @spec object_locations(pid, integer) :: [integer]
   def object_locations(fd, xref_start) do
-    [{"xref", _} | section_header_tokens] = Token.stream(fd, xref_start, @xref_header_read_size) |> Enum.take(3)
+    [{"xref", _} | section_header_tokens] = Token.xref_header(fd, xref_start)
     offsets = section_offsets(fd, section_header_tokens)
     parse_sections(fd, offsets)
   end
 
-  @spec section_offsets(pid, integer, [section_info]) :: [section_info]
+  @spec section_offsets(pid, [Token.xref_token], [section_info]) :: [section_info]
   defp section_offsets(fd, section_header_tokens, acc \\ [])
 
   defp section_offsets(_fd, [{"trailer", _} | _], acc) do
     acc |> Enum.reverse
   end
 
-  defp section_offsets(fd, [{_, _}, {section_lines, offset}], acc) do
-    lines = String.to_integer(section_lines)
+  defp section_offsets(fd, [_, {line_count, offset}], acc) do
+    lines = String.to_integer(line_count)
     new_offset = offset + lines * @xref_row_size
-    section_header_tokens = Token.stream(fd, new_offset, @xref_header_read_size) |> Enum.take(2)
+    section_header_tokens = Token.xref_header(fd, new_offset)
     section_offsets(fd, section_header_tokens, [{lines, offset} | acc])
   end
 
