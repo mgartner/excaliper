@@ -18,18 +18,20 @@ defmodule Excaliper.Types.JPEGTest do
 
   test "measure/1 returns the correct dimensions for JPEG files" do
     dir = "test/fixtures/jpeg"
-    dir |> Path.expand |> File.ls! |> Enum.each fn(file_name) ->
+
+    dir
+    |> Path.expand
+    |> File.ls!
+    |> Enum.each(fn(file_name) ->
+      [{width, _}, {height, _} | _] = String.split(file_name, ~r/x|\./) |> Enum.map(&Integer.parse/1)
       path = Path.expand(file_name, dir)
       fd = File.open!(path)
-
-      [{width, _} | [{height, _} | _ ]] = String.split(file_name, ~r/x|\./)
-                                          |> Enum.map &(Integer.parse(&1))
 
       assert JPEG.measure(fd, path) == {:ok, %Measurement{
         type: :jpeg,
         pages: [%Page{width: width, height: height}]
       }}
-    end
+    end)
   end
 
   test "measure/1 returns an error with a corrupt JPEG file" do

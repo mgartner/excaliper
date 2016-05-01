@@ -18,7 +18,8 @@ defmodule Excaliper.Mixfile do
       start_permanent: Mix.env == :prod,
       test_coverage: [tool: ExCoveralls],
       deps: deps,
-      docs: [main: "Excaliper", extras: ["README.md"]]
+      docs: [main: "Excaliper", extras: ["README.md"]],
+      preferred_cli_env: ["coveralls.html": :test]
     ]
   end
 
@@ -28,10 +29,11 @@ defmodule Excaliper.Mixfile do
 
   def deps do
     [
-      {:dogma, "~> 0.0.11", only: [:dev, :test]},
-      {:excoveralls, "~> 0.4.2", only: :test},
+      {:dialyxir, "~> 0.3", only: [:dev, :test]},
+      {:dogma, "~> 0.1", only: [:dev, :test]},
+      {:excoveralls, "~> 0.5.2", only: :test},
       {:ex_doc, "~> 0.10", only: :dev},
-      {:earmark, "~> 0.1", only: :dev},
+      {:earmark, "~> 0.2", only: :dev},
       {:benchfella, "~> 0.2", only: :dev}
     ]
   end

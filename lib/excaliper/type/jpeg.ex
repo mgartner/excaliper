@@ -19,18 +19,20 @@ defmodule Excaliper.Type.JPEG do
   @spec measure(pid, Path.t) :: {atom, Measurement.t}
   def measure(fd, path) do
     {:ok, %{size: size}} = File.stat(path)
-    dimensions(fd, size, @size_offset, << >>)
+    dimensions(fd, size, @size_offset)
   end
 
-  @spec dimensions(pid, integer, integer, binary) :: {atom, Measurement.t}
-  defp dimensions(fd, size, offset, << >>) do
+  @spec dimensions(pid, integer, integer, binary | nil) :: {atom, Measurement.t}
+  defp dimensions(fd, size, offset, binary \\ nil)
+
+  defp dimensions(fd, size, offset, nil) do
     {:ok, data} = :file.pread(fd, offset, @binary_size)
     dimensions(fd, size, offset, data)
   end
 
-  defp dimensions(_fd, _size, _offset,
-    << 0xff, type, _ :: binary-size(3), height :: integer-size(16), width :: integer-size(16) >>)
+  defp dimensions(_fd, _size, _offset, << 0xff, type, _ :: binary-size(3), dimensions :: binary-size(4) >>)
   when type in @sofs do
+    << height :: integer-size(16), width :: integer-size(16) >> = dimensions
     {:ok, %Measurement{type: :jpeg, pages: [%Page{width: width, height: height}]}}
   end
 
